@@ -82,9 +82,10 @@ end
 local function load(self, options, version)
 	AE_modApiExt:load(self, options, version)
 	require(self.scriptPath.."libs/trait"):load()
-	-- Hook to simulate snails fleeing
+	
 	local SnailHooks = require(self.scriptPath.."snail")
 	modApi:addMissionEndHook(SnailHooks.SnailMissionEndHook)
+	AE_modApiExt:addPawnKilledHook(SnailHooks.SnailPawnKilledHook)
 end
 
 return {

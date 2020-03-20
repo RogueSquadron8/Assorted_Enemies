@@ -123,5 +123,13 @@ function SnailMissionEndHook(mission)
 		end
 	end
 end
+-- Makes sure that snails that are on fire pass the status on to their slug
+function SnailPawnKilledHook(mission, pawn)
+	local p = pawn:GetSpace()
+	if pawn:IsSnail() and pawn:IsFire() and Board:IsValid(p) and not
+			Board:GetTerrain(p) == TERRAIN_WATER or TERRAIN_LAVA or TERRAIN_ACID or TERRAIN_HOLE then
+		Board:SetFire(p,true)
+	end
+end
 
-return {SnailMissionEndHook = SnailMissionEndHook}
+return {SnailMissionEndHook = SnailMissionEndHook, SnailPawnKilledHook = SnailPawnKilledHook}
