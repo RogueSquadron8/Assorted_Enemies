@@ -32,7 +32,8 @@ function SnailAtk1:GetSkillEffect(p1,p2)
 		if not hitMountain then										--Don't let pierce go through mountains
 			ret:AddQueuedDamage(SpaceDamage(newTarget, self.Damage))
 		end
-    end
+		hitMountain = Board:IsValid(newTarget) and Board:GetTerrain(newTarget) == TERRAIN_MOUNTAIN
+	end
 	
 	return ret
 end
