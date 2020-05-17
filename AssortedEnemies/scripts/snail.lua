@@ -1,11 +1,40 @@
 local mod = mod_loader.mods[modApi.currentMod]
 local trait = require(mod.scriptPath .."libs/trait")
+local sprites = require(mod.scriptPath .."libs/sprites")
+
+sprites.addEnemyUnits({
+	Name = "slug",
+	Default =           { PosX = -23, PosY = 2 },
+	Animated =          { PosX = -23, PosY = 2, NumFrames = 8 },
+	Submerged =         { PosX = -22, PosY = 9 },
+	Emerge =            { PosX = -24, PosY = 3, NumFrames = 10, Loop = false },--needed for retreat animation
+	Death =             { PosX = -24, PosY = 3, NumFrames = 8, Loop = false },
+})
+sprites.addEnemyUnits({
+	Name = "snail",
+	Default =           { PosX = -24, PosY = 3 },
+	Animated =          { PosX = -24, PosY = 3, NumFrames = 4 },
+	Submerged =         { PosX = -22, PosY = 9 },
+	Emerge =            { PosX = -24, PosY = 3, NumFrames = 10, Loop = false },
+	Death =             { PosX = -24, PosY = 3, NumFrames = 13, Loop = false },
+})
+
+snail_animSettings = {
+	NumFrames = 10,
+	Loop = false,
+	PosX = -24,
+	PosY = 3,
+	Time = 0.2
+}
+-- These animations are used for mimicking a retreat; see SnailMissionEndHook
+sprites.addAnimation("effects", "SnailEmerge_Normal", snail_animSettings)
+sprites.addAnimation("effects", "SnailEmerge_Alpha", snail_animSettings)
 
 Snail1 = Pawn:new{
 		Name = "Snail",
 		Health = 2,
 		MoveSpeed = 2,
-		Image = "SnailAnim",
+		Image = "snail",
 		Portrait = "enemy/Snail1",
 		SkillList = { "SnailAtk1" },
 		SoundLocation = "/enemy/firefly_soldier_1/",
@@ -20,7 +49,6 @@ Snail2 = Snail1:new{
 		Name = "Alpha Snail",
 		Health = 4,
 		MoveSpeed = 2,
-		Image = "SnailAnim",
 		ImageOffset = 1,
 		Portrait = "enemy/Snail2",
 		SkillList = { "SnailAtk2" },
@@ -37,7 +65,7 @@ Slug1 =
 		Name = "Slug",
 		Health = 1,
 		MoveSpeed = 2,
-		Image = "SlugAnim",
+		Image = "slug",
 		Portrait = "enemy/Slug1",
 		SkillList = { "SlugAtk1" },
 		SoundLocation = "/enemy/centipede_1/",
@@ -52,7 +80,7 @@ Slug2 =
 		Name = "Alpha Slug",
 		Health = 1,
 		MoveSpeed = 2,
-		Image = "SlugAnim",
+		Image = "slug",
 		ImageOffset = 1,
 		Portrait = "enemy/Slug2",
 		SkillList = { "SlugAtk2" },

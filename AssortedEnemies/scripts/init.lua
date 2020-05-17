@@ -5,65 +5,6 @@ local function init(self)
 	AE_modApiExt = require(extDir .."modApiExt")
 	AE_modApiExt:init(extDir)
 
-	require(self.scriptPath.."FURL")(self, {
-		{
-			Type = "enemy",
-			Name = "SlugAnim",
-			Filename = "slug",
-			Path = "img/units/aliens", 
-			ResourcePath = "units/aliens",
-			Height = 3,
-			Default =           { PosX = -23, PosY = 2 },
-			Animated =          { PosX = -23, PosY = 2, NumFrames = 8 },
-			Submerged =         { PosX = -17, PosY = -4 },
-			Emerge =            { PosX = -24, PosY = 3, NumFrames = 10 },--needed for retreat animation
-			Death =             { PosX = -24, PosY = 3, NumFrames = 8 },
-		},
-		{
-			Type = "enemy",
-			Name = "SnailAnim",
-			Filename = "snail",
-			Path = "img/units/aliens", 
-			ResourcePath = "units/aliens",
-			Height = 3,
-			Default =           { PosX = -24, PosY = 3 },
-			Animated =          { PosX = -24, PosY = 3, NumFrames = 4 },
-			Submerged =         { PosX = -17, PosY = -4 },
-			Emerge =            { PosX = -24, PosY = 3, NumFrames = 10 },
-			Death =             { PosX = -24, PosY = 3, NumFrames = 13 },
-		},
-		{
-			Type = "anim",
-			Filename = "SnailEmerge_Normal",
-			Path = "img/effects", 
-			ResourcePath = "effects",
-			
-			Name = "SnailEmerge_Normal",
-			Base = "Animation",
-			
-				NumFrames = 10,
-				Loop = false,
-				PosX = -24,
-				PosY = 3,
-				Time = 0.2
-		},		
-		{
-			Type = "anim",
-			Filename = "SnailEmerge_Alpha",
-			Path = "img/effects", 
-			ResourcePath = "effects",
-			
-			Name = "SnailEmerge_Alpha",
-			Base = "Animation",
-			
-				NumFrames = 10,
-				Loop = false,
-				PosX = -24,
-				PosY = 3,
-				Time = 0.2
-		}	
-	});
-
 	-- Snail images
 	modApi:appendAsset("img/weapons/enemy_snail1.png",self.resourcePath.."img/weapons/enemy_snail1.png")
 	modApi:appendAsset("img/weapons/enemy_snail2.png",self.resourcePath.."img/weapons/enemy_snail2.png")
@@ -98,7 +39,7 @@ return {
 	id = "AssortedEnemies",
     name = "Assorted Enemies",
     description = "Adds extra enemies to the game.",
-	version = "0.5.0",
+	version = "0.5.1.3",
 	requirements = {},
 	icon = "img/icons/AE_icon.png",
 	init = init,
