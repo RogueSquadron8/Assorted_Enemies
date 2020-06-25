@@ -14,7 +14,7 @@ SnailAtk1 = Skill:new{
 		Enemy = Point(2,1),
 		Building = Point(2,0),
 		Target = Point(2,2),
-		CustomPawn = "Snail1"
+		CustomPawn = "AE_Snail1"
 	}
 }
 
@@ -48,7 +48,7 @@ SnailAtk2 = SnailAtk1:new{
 		Enemy = Point(2,1),
 		Building = Point(2,0),
 		Target = Point(2,2),
-		CustomPawn = "Snail2"
+		CustomPawn = "AE_Snail2"
 	}
 }
 
@@ -58,7 +58,7 @@ SlugAtk1 = SnailAtk1:new{
 		Enemy = Point(2,1),
 		Building = Point(2,0),
 		Target = Point(2,2),
-		CustomPawn = "Slug1"
+		CustomPawn = "AE_Slug1"
 	}
 }
 
@@ -68,8 +68,77 @@ SlugAtk2 = SnailAtk2:new{
 		Enemy = Point(2,1),
 		Building = Point(2,0),
 		Target = Point(2,2),
-		CustomPawn = "Slug2"
+		CustomPawn = "AE_Slug2"
 	}
 }
 
---make boss slug's attack pierce as projectiles, so that objects several tiles behind the first target will still be hit
+SnailAtkB = Skill:new{
+	Name = "Puncturing Venom",
+    Description = "Fire a glob of venom that keeps traveling after the first hit. Cannot penetrate mountains.",
+    Icon = "weapons/enemy_snailB.png",
+    Class = "Enemy",
+    Range = RANGE_PROJECTILE,
+    Damage = 5,
+    Pierce = 1,
+    Explosion = "ExploFirefly1",
+	ImpactSound = "/impact/dynamic/enemy_projectile",
+	Projectile = "effects/snailB_projectile",
+	TipImage = {
+		Unit = Point(2,0),
+		Enemy = Point(2,2),
+		Building = Point(2,4),
+		Target = Point(2,1),
+		CustomPawn = "AE_SnailBoss"
+	}
+}
+
+-- Note: the snail boss will currently kill friendly units in order to attack a target behind them
+-- BUG: pierce does not update when you move a unit to block (Cannot replicate)
+function SnailAtkB:GetSkillEffect(p1,p2)
+	local ret = SkillEffect()
+	local dir = GetDirection(p2 - p1)
+	local p = p2	-- This variable is used to find the end of the projectile's path
+	local pierces = self.Pierce + 1
+
+	-- Iterate over each tile along the path of the projectile until we find where it will need to stop
+	while Board:IsValid(p) and (pierces > 0) and not (Board:GetTerrain(p) == TERRAIN_MOUNTAIN) do
+		if Board:IsBuilding(p) or Board:IsPawnSpace(p) then
+			pierces = pierces - 1
+		end
+		p = p + DIR_VECTORS[dir]
+	end
+	-- Make sure that the pierce does not go too far due to the order of checking pierces and moving p
+	-- If the max number of pierces has occured and p ends on a mountain, need to make sure p is moved back
+	-- Otherwise, if p ends on a mountain, it does not need ot be moved
+	if (not (Board:GetTerrain(p) == TERRAIN_MOUNTAIN)) or pierces == 0 then
+		p = p - DIR_VECTORS[dir]
+	end
+	
+	local projectileDamage = SpaceDamage(p, self.Damage)
+	ret:AddQueuedProjectile(projectileDamage, self.Projectile, NO_DELAY)
+	
+	local damage
+	local target = p1 + DIR_VECTORS[dir]
+	while target ~= p do 
+		ret:AddQueuedDelay(0.1)
+		damage = SpaceDamage(target,self.Damage)
+		damage.sAnimation = self.Explosion
+		damage.sSound = self.ImpactSound
+		if Board:IsPawnSpace(target) or Board:IsBuilding(target) or Board:GetTerrain(target) == TERRAIN_MOUNTAIN then
+			ret:AddQueuedDamage(damage)
+		end
+		target = target + DIR_VECTORS[dir]
+	end
+	
+	return ret
+end
+
+SlugAtkB = SnailAtkB:new{
+	TipImage = {
+		Unit = Point(2,0),
+		Enemy = Point(2,2),
+		Building = Point(2,4),
+		Target = Point(2,1),
+		CustomPawn = "AE_SlugBoss"
+	}
+}

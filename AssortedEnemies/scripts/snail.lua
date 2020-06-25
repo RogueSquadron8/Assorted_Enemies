@@ -8,7 +8,7 @@ sprites.addEnemyUnits({
 	Animated =          { PosX = -23, PosY = 2, NumFrames = 8 },
 	Submerged =         { PosX = -22, PosY = 9 },
 	Emerge =            { PosX = -24, PosY = 3, NumFrames = 10, Loop = false },--needed for retreat animation
-	Death =             { PosX = -24, PosY = 3, NumFrames = 8, Loop = false },
+	Death =             { PosX = -24, PosY = 3, NumFrames = 8, Loop = false, Time = 0.1}, -- too slow without Time
 })
 sprites.addEnemyUnits({
 	Name = "snail",
@@ -16,7 +16,7 @@ sprites.addEnemyUnits({
 	Animated =          { PosX = -24, PosY = 3, NumFrames = 4 },
 	Submerged =         { PosX = -22, PosY = 9 },
 	Emerge =            { PosX = -24, PosY = 3, NumFrames = 10, Loop = false },
-	Death =             { PosX = -24, PosY = 3, NumFrames = 13, Loop = false },
+	Death =             { PosX = -24, PosY = 3, NumFrames = 13, Loop = false, Time = 0.1},
 })
 
 snail_animSettings = {
@@ -29,8 +29,9 @@ snail_animSettings = {
 -- These animations are used for mimicking a retreat; see SnailMissionEndHook
 sprites.addAnimation("effects", "SnailEmerge_Normal", snail_animSettings)
 sprites.addAnimation("effects", "SnailEmerge_Alpha", snail_animSettings)
+sprites.addAnimation("effects", "SnailEmerge_Boss", snail_animSettings)
 
-Snail1 = Pawn:new{
+AE_Snail1 = Pawn:new{
 		Name = "Snail",
 		Health = 2,
 		MoveSpeed = 2,
@@ -41,11 +42,11 @@ Snail1 = Pawn:new{
 		DefaultTeam = TEAM_ENEMY,
 		ImpactMaterial = IMPACT_FLESH,
 		Tier = TIER_NORMAL,
-		SecondForm = "Slug1",
+		SecondForm = "AE_Slug1",
 		Minor = true,
 	}
 
-Snail2 = Snail1:new{
+AE_Snail2 = AE_Snail1:new{
 		Name = "Alpha Snail",
 		Health = 4,
 		MoveSpeed = 2,
@@ -56,45 +57,97 @@ Snail2 = Snail1:new{
 		DefaultTeam = TEAM_ENEMY,
 		ImpactMaterial = IMPACT_FLESH,
 		Tier = TIER_ALPHA,
-		SecondForm = "Slug2",
+		SecondForm = "AE_Slug2",
 		Minor = true,
 	}
 
-Slug1 =
-	{
-		Name = "Slug",
-		Health = 1,
-		MoveSpeed = 2,
-		Image = "slug",
-		Portrait = "enemy/Slug1",
-		SkillList = { "SlugAtk1" },
-		SoundLocation = "/enemy/centipede_1/",
-		DefaultTeam = TEAM_ENEMY,
-		ImpactMaterial = IMPACT_INSECT,
-		Tier = TIER_NORMAL,
-	}
-AddPawn("Slug1")
+AE_SnailBoss = Pawn:new{
+	Name = "Snail Leader",
+	Health = 5,
+	MoveSpeed = 2,
+	Image = "snail",
+	ImageOffset = 2,
+	Portrait = "enemy/SnailB",
+	SkillList = { "SnailAtkB" },
+	SoundLocation = "/enemy/firefly_soldier_1/",
+	DefaultTeam = TEAM_ENEMY,
+	ImpactMaterial = IMPACT_FLESH,
+	Tier = TIER_BOSS,
+	SecondForm = "AE_SlugBoss",
+	Minor = true,
+	Massive = true,
+}
+-- Special version of the function for Boss
+local function CanSpawn_B(p)
+	return not (Board:IsBlocked(p,PATH_GROUND) or Board:GetTerrain(p) == TERRAIN_WATER
+		 or Board:GetTerrain(p) == TERRAIN_LAVA or Board:GetTerrain(p) == TERRAIN_ACID)
+end
 
-Slug2 =
-	{
-		Name = "Alpha Slug",
-		Health = 1,
-		MoveSpeed = 2,
-		Image = "slug",
-		ImageOffset = 1,
-		Portrait = "enemy/Slug2",
-		SkillList = { "SlugAtk2" },
-		SoundLocation = "/enemy/centipede_2/",
-		DefaultTeam = TEAM_ENEMY,
-		ImpactMaterial = IMPACT_INSECT,
-		Tier = TIER_ALPHA,
-	}
-AddPawn("Slug2")
+function AE_SnailBoss:GetDeathEffect(p)
+	local ret = SkillEffect()
+	ret:AddDelay(.8)
+	--if Board:isPawnSpace(p) then LOG("Space occupied") end
+	if CanSpawn_B(p) then
+		--LOG("Can spawn")
+		ret:AddScript(string.format("local p = Point(%i, %i) Board:AddPawn(%q, p)", p.x, p.y, self.SecondForm))
+	else
+		ret:AddScript(string.format([[
+			local p = Point(%i, %i) 
+			local pawn = PAWN_FACTORY:CreatePawn(%q)
+			Board:AddPawn(pawn, p)
+			pawn:Kill(true)
+			]], p.x, p.y, self.SecondForm))
+	end
+	return ret
+end
+
+AE_Slug1 = Pawn:new{
+	Name = "Slug",
+	Health = 1,
+	MoveSpeed = 2,
+	Image = "slug",
+	Portrait = "enemy/Slug1",
+	SkillList = { "SlugAtk1" },
+	SoundLocation = "/enemy/centipede_1/",
+	DefaultTeam = TEAM_ENEMY,
+	ImpactMaterial = IMPACT_INSECT,
+	Tier = TIER_NORMAL,
+}
+
+AE_Slug2 = Pawn:new{
+	Name = "Alpha Slug",
+	Health = 1,
+	MoveSpeed = 2,
+	Image = "slug",
+	ImageOffset = 1,
+	Portrait = "enemy/Slug2",
+	SkillList = { "SlugAtk2" },
+	SoundLocation = "/enemy/centipede_2/",
+	DefaultTeam = TEAM_ENEMY,
+	ImpactMaterial = IMPACT_INSECT,
+	Tier = TIER_ALPHA,
+}
+
+AE_SlugBoss = Pawn:new{
+	Name = "Slug Leader",
+	Health = 1,
+	MoveSpeed = 2,
+	Image = "slug",
+	ImageOffset = 2,
+	Portrait = "enemy/SlugB",
+	SkillList = { "SlugAtkB" },
+	SoundLocation = "/enemy/centipede_2/",
+	DefaultTeam = TEAM_ENEMY,
+	ImpactMaterial = IMPACT_INSECT,
+	Tier = TIER_BOSS,
+	Massive = true,
+}
 
 local function isSnail(pawn)
 	return
 		list_contains(_G[pawn:GetType()].SkillList, "SnailAtk1") or
-		list_contains(_G[pawn:GetType()].SkillList, "SnailAtk2")
+		list_contains(_G[pawn:GetType()].SkillList, "SnailAtk2") or
+		list_contains(_G[pawn:GetType()].SkillList, "SnailAtkB")
 end
 
 local function isSnailNormal(pawn)
@@ -113,15 +166,14 @@ local function CanSpawn(p)
 end
 
 trait:Add{
-	PawnTypes = {"Snail1","Snail2"},
+	PawnTypes = {"AE_Snail1","AE_Snail2","AE_SnailBoss"},
 	Icon = {"img/combat/icons/icon_shell.png", Point(0,17)}, -- was (0,8)
 	Description = {"Protective Shell", "This unit blocks damage with its shell, which must be destroyed before it can be killed."}
 }
 
-function Snail1:GetDeathEffect(p)
+function AE_Snail1:GetDeathEffect(p)
 	local ret = SkillEffect()
 	ret:AddDelay(.8)
-	--if Board:isPawnSpace(p) then LOG("Space occupied") end
 	if CanSpawn(p) then
 		--LOG("Can spawn")
 		ret:AddScript(string.format("local p = Point(%i, %i) Board:AddPawn(%q, p)", p.x, p.y, self.SecondForm))
@@ -151,7 +203,8 @@ function SnailMissionEndHook(mission)
 			pawn:SetInvisible(true)
 			pawn:SetSpace(Point(-1,-1)) -- move it over here and forget about it
 			if isSnailNormal(pawn) then Board:AddAnimation(space,"SnailEmerge_Normal",ANIM_REVERSE)
-			else Board:AddAnimation(space,"SnailEmerge_Alpha",ANIM_REVERSE) end
+			else if isSnailAlpha(pawn) then Board:AddAnimation(space,"SnailEmerge_Alpha",ANIM_REVERSE)
+			else Board:AddAnimation(space,"SnailEmerge_Boss",ANIM_REVERSE) end end
 		end
 	end
 end

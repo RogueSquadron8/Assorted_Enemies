@@ -1,4 +1,5 @@
 local AE_modApiExt
+local bosses
 
 local function init(self)
 	local extDir = self.scriptPath .."modApiExt/"
@@ -18,18 +19,40 @@ local function init(self)
 	modApi:appendAsset("img/portraits/enemy/Snail1.png",self.resourcePath.."img/portraits/enemy/Snail1.png")
 	modApi:appendAsset("img/portraits/enemy/Slug2.png",self.resourcePath.."img/portraits/enemy/Slug2.png")
 	modApi:appendAsset("img/portraits/enemy/Snail2.png",self.resourcePath.."img/portraits/enemy/Snail2.png")
+	modApi:appendAsset("img/portraits/enemy/SlugB.png",self.resourcePath.."img/portraits/enemy/SlugB.png")
+	modApi:appendAsset("img/portraits/enemy/SnailB.png",self.resourcePath.."img/portraits/enemy/SnailB.png")
 
 	-- Snail scripts
 	require(self.scriptPath.."snailWeapons")
 	require(self.scriptPath.."snail")
-	require(self.scriptPath.."spawners")
-	
+	require(self.scriptPath.."snailBossMission")
+
+	-- Config options
+	modApi:addGenerationOption(
+		"opt_Snails",
+		"Enable Snails",
+		"Check to enable spawning of normal and alpha snails.",
+		{}
+	)
+	modApi:addGenerationOption(
+		"opt_SnailBoss",
+		"Enable Snail Leader",
+		"Check to enable the snail leader bossfight. Does not require snails to be enabled.",
+		{}
+	)
+	modApi:addGenerationOption(
+		"opt_FinalMissionBosses",
+		"Enable Bosses on Final Island",
+		"Check to allow all enabled bosses to spawn on the final island",
+		{}
+	)
 end
 
 local function load(self, options, version)
 	AE_modApiExt:load(self, options, version)
 	require(self.scriptPath.."libs/trait"):load()
-	
+	require(self.scriptPath.."spawners"):load(options)
+
 	local SnailHooks = require(self.scriptPath.."snail")
 	modApi:addMissionEndHook(SnailHooks.SnailMissionEndHook)
 	AE_modApiExt:addPawnKilledHook(SnailHooks.SnailPawnKilledHook)
